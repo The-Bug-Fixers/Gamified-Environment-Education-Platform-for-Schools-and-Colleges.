@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Eco Gamified Learning</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #d4fc79, #96e6a1);
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .banner {
+      background: linear-gradient(90deg, #d4fc79, #fceabb);
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+    }
+    h1 { text-align: center; color: #166534; }
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    .badge {
+      background: #e0f2fe;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+    .btn {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-green { background: #22c55e; color: white; }
+    .btn-orange { background: #f97316; color: white; }
+    .btn-yellow { background: #facc15; }
+    .btn-ghost { background: #f1f5f9; }
+    .impact-bar {
+      background: #e5e7eb;
+      height: 8px;
+      border-radius: 5px;
+      margin-top: 5px;
+    }
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .task {
+      padding: 15px;
+      border-radius: 12px;
+      background: #f9fafb;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      width: 300px;
+      text-align: center;
+    }
+    .hidden { display: none; }
+    .admin-section {
+      background: #fef9c3;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+    .admin-task { margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🌍 Eco Gamified Learning</h1>
+  <div id="roleSelection">
+    <button class="btn btn-green" onclick="startAsUser()">Login as User</button>
+    <button class="btn btn-orange" onclick="startAsAdmin()">Request Admin Access</button>
+    <button class="btn btn-yellow" onclick="realAdminLogin()">Real Admin Login</button>
+  </div>
+
+  <div id="appInterface" class="hidden">
+    <div class="banner">
+      <h2>😊 <span id="username">You</span></h2>
+      <p>Make the planet proud today ✨</p>
+      <div class="row">
+        <span class="badge">Level: Eco Beginner</span>
+        <span class="badge">Points: <span id="points">0</span></span>
+        <span class="badge">Streak: 0 days</span>
+        <span class="badge">Referrals: 0</span>
+      </div>
+      <div class="row">
+        <button class="btn btn-ghost" onclick="openProfileModal()">Edit Profile</button>
+        <button class="btn btn-yellow" onclick="shareWhatsapp()">Share WhatsApp</button>
+        <button class="btn btn-orange" onclick="shareTwitter()">Share Twitter</button>
+      </div>
+      <div class="row">
+        <button class="btn btn-green" onclick="showTab('dashboard')">Dashboard</button>
+        <button class="btn btn-orange" onclick="showTab('leaderboard')">Leaderboard</button>
+        <button class="btn btn-orange" onclick="showTab('achievements')">Achievements</button>
+        <button class="btn btn-green" onclick="showTab('quiz')">Quiz</button>
+      </div>
+    </div>
+
+    <div id="dashboardTab">
+      <div class="card">
+        <h3 style="text-align:center;">Your Impact ✨</h3>
+        <p>CO₂ Saved (kg): <span id="co2">0</span></p>
+        <div class="impact-bar" id="bar-co2"></div>
+        <p>Water Saved (L): <span id="water">0</span></p>
+        <div class="impact-bar" id="bar-water"></div>
+        <p>Energy Saved (kWh): <span id="energy">0</span></p>
+        <div class="impact-bar" id="bar-energy"></div>
+        <p>Landfill Reduced (kg): <span id="landfill">0</span></p>
+        <div class="impact-bar" id="bar-landfill"></div>
+      </div>
+      <div class="task-grid" id="taskGrid"></div>
+      <div class="admin-section" id="adminReview" style="display:none;">
+        <h3>🛠️ Admin Review: Pending Proofs</h3>
+        <div id="pendingProofs"></div>
+      </div>
+      <div class="admin-section" id="adminRequestsSection" style="display:none;">
+        <h3>👤 Admin Role Requests</h3>
+        <div id="adminRoleRequestsContainer"></div>
+      </div>
+    </div>
+
+    <div id="leaderboardTab" class="hidden">
+      <div class="card">
+        <h3>🏆 Eco Leaderboard</h3>
+        <ul id="leaderboardList"></ul>
+      </div>
+    </div>
+
+    <div id="achievementsTab" class="hidden">
+      <div class="card">
+        <h3>🏅 Achievements</h3>
+        <p>🌱 Beginner Badge - Start your journey</p>
+        <p>🌳 Tree Planter - Plant your first tree</p>
+        <p>🚍 Green Traveller - Use public transport</p>
+      </div>
+    </div>
+
+    <div id="quizTab" class="hidden">
+      <div class="card">
+        <h3>🧠 Eco Quiz Challenge</h3>
+        <div id="quizContainer"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="videoModal" class="modal">
+  <div class="modal-content">
+    <h3>📹 Upload Proof</h3>
+    <input type="file" accept="video/*" id="videoProofInput">
+    <br><br>
+    <button class="btn btn-green" onclick="submitProof()">Submit Proof</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<div id="profileModal" class="modal">
+  <div class="modal-content">
+    <h3>Edit Profile</h3>
+    <input type="text" id="nameInput" placeholder="Enter your name">
+    <br><br>
+    <button class="btn btn-green" onclick="saveProfile()">Save</button>
+    <button class="btn btn-ghost" onclick="closeProfileModal()">Cancel</button>
+  </div>
+</div>
+
+<script>
+  let points = 0;
+  let co2 = 0, water = 0, energy = 0, landfill = 0;
+  let currentTask = "";
+  let username = "You";
+  let isAdmin = false;
+
+  let tasks = [
+    { key: "tree", label: "🌳 Plant a Tree", points: 40, co2: 10, water: 20, energy: 0, landfill: 0 },
+    { key: "recycle", label: "♻️ Recycle Waste", points: 20, co2: 0, water: 0, energy: 0, landfill: 5 },
+    { key: "transport", label: "🚌 Use Public Transport", points: 25, co2: 7, water: 0, energy: 0, landfill: 0 },
+    { key: "electricity", label: "💡 Save Electricity", points: 30, co2: 0, water: 0, energy: 8, landfill: 0 },
+  ];
+
+  let quizQuestions = [
+    {
+      question: "What does recycling help reduce?",
+      options: ["Deforestation", "Water levels", "Landfill waste", "Air speed"],
+      answer: "Landfill waste",
+    },
+    {
+      question: "Which is a renewable energy source?",
+      options: ["Coal", "Oil", "Solar", "Plastic"],
+      answer: "Solar",
+    },
+    {
+      question: "What is the best way to conserve water?",
+      options: ["Leave tap open", "Use bucket for washing", "Take long showers", "Water lawn daily"],
+      answer: "Use bucket for washing",
+    }
+  ];
+
+  let adminRoleRequests = JSON.parse(localStorage.getItem('adminRoleRequests') || '[]');
+  let proofStatus = JSON.parse(localStorage.getItem('proofStatus') || '{}');
+  let approvedAdmins = JSON.parse(localStorage.getItem('approvedAdmins') || '[]');
+
+  function saveData() {
+    localStorage.setItem('adminRoleRequests', JSON.stringify(adminRoleRequests));
+    localStorage.setItem('proofStatus', JSON.stringify(proofStatus));
+    localStorage.setItem('approvedAdmins', JSON.stringify(approvedAdmins));
+  }
+
+  function startAsUser() {
+    document.getElementById('roleSelection').classList.add('hidden');
+    document.getElementById('appInterface').classList.remove('hidden');
+    isAdmin = false;
+    renderTasks();
+    updateLeaderboard();
+  }
+
+  function startAsAdmin() {
+    const name = prompt("Enter your name to request Admin access:");
+    if (!name) return;
+    username = name;
+    adminRoleRequests.push(name);
+    saveData();
+    alert('✅ Your admin access request is pending approval.');
+    document.getElementById('roleSelection').classList.add('hidden');
+    document.getElementById('appInterface').classList.remove('hidden');
+    isAdmin = false;
+    renderTasks();
+    updateLeaderboard();
+  }
+
+  function realAdminLogin() {
+    const password = prompt("Enter real admin password:");
+    if (password === 'secret123') {
+      username = "Real Admin";
+      isAdmin = true;
+      document.getElementById('roleSelection').classList.add('hidden');
+      document.getElementById('appInterface').classList.remove('hidden');
+      document.getElementById('adminReview').style.display = 'block';
+      document.getElementById('adminRequestsSection').style.display = 'block';
+      renderTasks();
+      updateLeaderboard();
+      renderAdminReview();
+      renderAdminRequests();
+    } else {
+      alert('❌ Wrong password');
+    }
+  }
+
+  function showTab(tab) {
+    ["dashboard", "leaderboard", "achievements", "quiz"].forEach(id =>
+      document.getElementById(id + "Tab").classList.add("hidden")
+    );
+    document.getElementById(tab + "Tab").classList.remove("hidden");
+
+    if (tab === "leaderboard") updateLeaderboard();
+    if (tab === "quiz") renderQuiz();
+  }
+
+  function openModal(taskKey) {
+    currentTask = taskKey;
+    document.getElementById("videoModal").style.display = "flex";
+  }
+
+  function closeModal() {
+    document.getElementById("videoModal").style.display = "none";
+    document.getElementById("videoProofInput").value = "";
+  }
+
+  function submitProof() {
+    const file = document.getElementById('videoProofInput').files[0];
+    if (!file) return alert("⚠️ Please upload a video proof.");
+    proofStatus[currentTask] = "pending";
+    saveData();
+    alert("🚧 Video proof submitted and pending manual review.");
+    closeModal();
+    renderTasks();
+    if (isAdmin) renderAdminReview();
+  }
+
+  function approveProof(taskKey) {
+    proofStatus[taskKey] = "approved";
+    const task = tasks.find(t => t.key === taskKey);
+    points += task.points;
+    co2 += task.co2;
+    water += task.water;
+    energy += task.energy;
+    landfill += task.landfill;
+    saveData();
+    renderTasks();
+    renderAdminReview();
+    updateLeaderboard();
+    alert('✅ Proof approved and task completed.');
+  }
+
+  function approveAdmin(name) {
+    approvedAdmins.push(name);
+    adminRoleRequests.splice(adminRoleRequests.indexOf(name), 1);
+    saveData();
+    renderAdminRequests();
+    alert(`✅ ${name} is now an approved Admin.`);
+  }
+
+  function renderTasks() {
+    const grid = document.getElementById("taskGrid");
+    grid.innerHTML = "";
+    tasks.forEach(task => {
+      const status = proofStatus[task.key];
+      const isDone = status === "approved";
+      const isPending = status === "pending";
+
+      const div = document.createElement("div");
+      div.className = "task";
+      div.innerHTML = `
+        <h4>${task.label}</h4>
+        <p>+${task.points} pts</p>
+        <button class="btn ${isDone || isPending ? 'btn-ghost' : 'btn-green'}" ${isDone || isPending ? 'disabled' : ''}>
+          ${isDone ? 'Done ✅' : isPending ? 'Proof Pending 🚧' : 'Complete Task'}
+        </button>
+      `;
+
+      if (!isDone && !isPending) {
+        div.querySelector("button").addEventListener("click", () => openModal(task.key));
+      }
+
+      grid.appendChild(div);
+    });
+  }
+
+  function renderAdminReview() {
+    const container = document.getElementById("pendingProofs");
+    container.innerHTML = "";
+    tasks.forEach(task => {
+      if (proofStatus[task.key] === 'pending') {
+        const div = document.createElement('div');
+        div.className = 'admin-task';
+        div.innerHTML = `
+          <span>${task.label}</span>
+          <button class="btn btn-green" onclick="approveProof('${task.key}')">Approve Proof</button>
+        `;
+        container.appendChild(div);
+      }
+    });
+    if (container.innerHTML === '') {
+      container.innerHTML = '<em>No pending proofs</em>';
+    }
+  }
+
+  function renderAdminRequests() {
+    const container = document.getElementById("adminRoleRequestsContainer");
+    container.innerHTML = "";
+    adminRoleRequests.forEach(name => {
+      const div = document.createElement('div');
+      div.className = 'admin-task';
+      div.innerHTML = `
+        <span>${name}</span>
+        <button class="btn btn-green" onclick="approveAdmin('${name}')">Approve Admin</button>
+      `;
+      container.appendChild(div);
+    });
+    if (container.innerHTML === '') {
+      container.innerHTML = '<em>No pending admin requests</em>';
+    }
+  }
+
+  function updateLeaderboard() {
+    let leaderboard = [
+      { name: "Anita 🌳", score: 300 },
+      { name: "Rahul 🪴", score: 250 },
+      { name: "Meera 🌍", score: 200 },
+    ];
+
+    leaderboard = leaderboard.filter(p => p.name !== username);
+    leaderboard.push({ name: username + " 🌱", score: points });
+    leaderboard.sort((a, b) => b.score - a.score);
+
+    let list = document.getElementById("leaderboardList");
+    list.innerHTML = "";
+    leaderboard.forEach((p, i) => {
+      let li = document.createElement("li");
+      li.textContent = `${i+1}. ${p.name} - ${p.score} pts`;
+      list.appendChild(li);
+    });
+
+    document.getElementById("points").textContent = points;
+  }
+
+  function openProfileModal() {
+    document.getElementById("profileModal").style.display = "flex";
+  }
+
+  function closeProfileModal() {
+    document.getElementById("profileModal").style.display = "none";
+  }
+
+  function saveProfile() {
+    const name = document.getElementById("nameInput").value;
+    if (name) username = name;
+    document.getElementById("username").innerText = username;
+    updateLeaderboard();
+    closeProfileModal();
+  }
+
+  function shareWhatsapp() {
+    const text = encodeURIComponent("🌍 Join me on Eco Gamified Learning! Let's save the planet together 🌱✨");
+    window.open("https://wa.me/?text=" + text, "_blank");
+  }
+
+  function shareTwitter() {
+    const text = encodeURIComponent("🌍 I'm using Eco Gamified Learning to make an impact! Join me 🌱✨");
+    window.open("https://twitter.com/intent/tweet?text=" + text, "_blank");
+  }
+
+  function renderQuiz() {
+    const container = document.getElementById("quizContainer");
+    container.innerHTML = "";
+    quizQuestions.forEach((q, index) => {
+      const div = document.createElement("div");
+      div.className = "task";
+      div.innerHTML = `<p><strong>Q${index + 1}:</strong> ${q.question}</p>`;
+      q.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.className = "btn btn-ghost";
+        btn.textContent = option;
+        btn.onclick = () => {
+          if (option === q.answer) {
+            points += 10;
+            alert("✅ Correct! +10 points");
+          } else {
+            alert("❌ Incorrect!");
+          }
+          updateLeaderboard();
+          btn.disabled = true;
+        };
+        div.appendChild(btn);
+      });
+      container.appendChild(div);
+    });
+  }
+</script>
+</body>
+</html>
+
